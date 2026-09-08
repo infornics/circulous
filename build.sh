@@ -121,6 +121,9 @@ stage_squashfs() {
     info "Phase 3: Creating live filesystem squashfs..."
     mkdir -p "${ISO_DIR}/casper"
 
+    # Remove existing squashfs image to ensure fresh non-appended filesystem
+    rm -f "${ISO_DIR}/casper/filesystem.squashfs"
+
     # Extract kernel and initrd from rootfs for ISO bootloader
     local kernel_file=$(ls -1 "${ROOTFS_DIR}/boot/vmlinuz-"* 2>/dev/null | tail -n 1 || true)
     local initrd_file=$(ls -1 "${ROOTFS_DIR}/boot/initrd.img-"* 2>/dev/null | tail -n 1 || true)
@@ -133,10 +136,10 @@ stage_squashfs() {
         warn "vmlinuz/initrd not found in rootfs /boot. Ensuring kernel package in packages.list."
     fi
 
-    # Compress rootfs into squashfs
-    info "Running mksquashfs..."
+    # Compress rootfs into fresh squashfs
+    info "Running mksquashfs with -noappend..."
     mksquashfs "${ROOTFS_DIR}" "${ISO_DIR}/casper/filesystem.squashfs" \
-        -e boot -noappend -wildcards
+        -noappend -e boot -wildcards
 
     success "Phase 3: Squashfs creation completed."
 }
