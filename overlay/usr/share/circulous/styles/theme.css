@@ -1,157 +1,861 @@
 /*
 ==============================================================================
-Circulous Desktop Theme (theme.css)
+Ciculous Desktop — Midnight Glass Theme
 ==============================================================================
-Qt Style Sheet (QSS / CSS) for Circulous Desktop Shell.
-Feel free to customize colors, borders, gradients, and fonts below!
+A restrained, modern desktop system inspired by premium desktop environments.
+
+Design principles:
+- Calm dark surfaces with clear elevation
+- One primary accent: Ciculous Blue
+- Subtle neutral borders; accent borders only for focus/active state
+- Consistent corner radii and interaction states
+- High readability without neon overload
+
+Qt Style Sheet (QSS)
 ==============================================================================
 */
 
-QWidget {
-    font-family: "Ubuntu", "Noto Color Emoji", "Segoe UI Emoji", "DejaVu Sans", sans-serif;
-    color: #f0f6fc;
-}
 
 /* ==========================================================================
-   TOP STATUS BAR (#TopBar)
+   DESIGN TOKENS
+   Qt QSS has no CSS variables. Keep these values consistent manually.
+
+   Base / wallpaper:     #0B1220
+   Elevated surface:     rgba(28, 37, 54, 0.86)
+   Primary text:         #F5F7FA
+   Secondary text:       #A8B1C0
+   Muted text:           #737E91
+   Accent:               #0A84FF
+   Accent hover:         #409CFF
+   Destructive:          #FF5F57
+   ========================================================================== */
+
+
+/* ==========================================================================
+   GLOBAL DEFAULTS
+   ========================================================================== */
+QWidget {
+    font-family: "Inter", "SF Pro Display", "SF Pro Text", "Ubuntu",
+                 "Noto Sans", "Noto Color Emoji", "Segoe UI Emoji",
+                 "DejaVu Sans", sans-serif;
+    color: #F5F7FA;
+    font-size: 13px;
+    outline: none;
+}
+
+
+QWidget:disabled {
+    color: rgba(245, 247, 250, 0.34);
+}
+
+
+/* Optional base selector for the desktop root widget */
+#DesktopRoot,
+#DesktopShell {
+    background-color: #0B1220;
+    color: #F5F7FA;
+}
+
+
+/* ==========================================================================
+   TOP STATUS BAR
    ========================================================================== */
 #TopBar {
-    background-color: rgba(14, 19, 31, 0.92);
-    border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+    background-color: rgba(14, 20, 33, 0.92);
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Circulous Logo Button */
+
+/* --------------------------------------------------------------------------
+   Brand / logo
+   -------------------------------------------------------------------------- */
 #LogoBtn {
     background-color: transparent;
-    color: #00e5ff;
-    font-weight: bold;
-    font-size: 13px;
-    border: none;
-    padding: 2px 10px;
-    border-radius: 4px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: #55B7FF;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 10px;
 }
+
 
 #LogoBtn:hover {
-    background-color: rgba(0, 229, 255, 0.18);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.06);
+    color: #8ACBFF;
 }
 
-/* Active Application Title */
+
+#LogoBtn:pressed {
+    background-color: rgba(10, 132, 255, 0.18);
+    color: #FFFFFF;
+}
+
+
+/* --------------------------------------------------------------------------
+   Active application title
+   -------------------------------------------------------------------------- */
 #AppTitleLbl {
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 12px;
-    padding: 0 8px;
+    background-color: transparent;
+    color: #F5F7FA;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 7px;
 }
 
-/* Top Bar Global Menu Buttons */
-.MenuBtn {
-    background: transparent;
-    color: #c9d1d9;
-    font-size: 11px;
-    border: none;
-    padding: 3px 8px;
-    border-radius: 4px;
+
+/* Optional subtitle / context label */
+#AppSubtitleLbl,
+#ContextLbl {
+    color: #8E99AA;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 0 4px;
 }
+
+
+/* --------------------------------------------------------------------------
+   Global menu buttons
+   -------------------------------------------------------------------------- */
+.MenuBtn {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #AEB8C7;
+    font-size: 12px;
+    font-weight: 500;
+    min-height: 24px;
+    padding: 2px 8px;
+}
+
 
 .MenuBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
 }
 
-/* Metric Status Pills (CPU, RAM, Network) */
-#StatusPill {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    padding: 2px 8px;
+
+.MenuBtn:pressed,
+.MenuBtn:checked {
+    background-color: rgba(10, 132, 255, 0.20);
+    border-color: rgba(10, 132, 255, 0.24);
+    color: #FFFFFF;
+}
+
+
+.MenuBtn:disabled {
+    background-color: transparent;
+    color: rgba(174, 184, 199, 0.38);
+}
+
+
+/* --------------------------------------------------------------------------
+   Status pills: CPU, RAM, connectivity, etc.
+   Use object names such as:
+   #CpuPill, #RamPill, #NetworkPill
+   -------------------------------------------------------------------------- */
+#StatusPill,
+#CpuPill,
+#RamPill,
+#NetworkPill {
+    background-color: rgba(255, 255, 255, 0.075);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 9px;
+    color: #D8DEE9;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 600;
+    min-height: 25px;
+    padding: 1px 9px;
 }
 
-/* Clock & Date Pill */
+
+#StatusPill:hover,
+#CpuPill:hover,
+#RamPill:hover,
+#NetworkPill:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+}
+
+
+/* Online / healthy network state */
+#NetworkPill[status="online"],
+#StatusPill[status="online"] {
+    background-color: rgba(48, 209, 88, 0.13);
+    border-color: rgba(48, 209, 88, 0.22);
+    color: #9DF3B2;
+}
+
+
+/* Warning state */
+#NetworkPill[status="warning"],
+#StatusPill[status="warning"] {
+    background-color: rgba(255, 159, 10, 0.14);
+    border-color: rgba(255, 159, 10, 0.24);
+    color: #FFD08A;
+}
+
+
+/* Offline/error state */
+#NetworkPill[status="offline"],
+#StatusPill[status="error"] {
+    background-color: rgba(255, 95, 87, 0.14);
+    border-color: rgba(255, 95, 87, 0.22);
+    color: #FFAAA5;
+}
+
+
+/* --------------------------------------------------------------------------
+   Clock and date
+   -------------------------------------------------------------------------- */
 #ClockPill {
-    background-color: rgba(0, 229, 255, 0.12);
-    border: 1px solid rgba(0, 229, 255, 0.4);
-    color: #00e5ff;
-    font-weight: bold;
+    background-color: rgba(10, 132, 255, 0.13);
+    border: 1px solid rgba(64, 156, 255, 0.30);
+    border-radius: 9px;
+    color: #8ACBFF;
     font-size: 11px;
-    border-radius: 6px;
-    padding: 2px 10px;
+    font-weight: 700;
+    min-height: 25px;
+    padding: 1px 10px;
 }
 
-/* Power Action Button */
-#PowerBtn {
-    background-color: rgba(255, 53, 94, 0.2);
-    border: 1px solid rgba(255, 53, 94, 0.5);
-    color: #ff355e;
-    font-weight: bold;
-    font-size: 12px;
-    border-radius: 6px;
-    padding: 2px 8px;
+
+#ClockPill:hover {
+    background-color: rgba(10, 132, 255, 0.22);
+    border-color: rgba(100, 182, 255, 0.52);
+    color: #FFFFFF;
 }
+
+
+#ClockPill:pressed {
+    background-color: rgba(10, 132, 255, 0.32);
+}
+
+
+/* --------------------------------------------------------------------------
+   Power button
+   -------------------------------------------------------------------------- */
+#PowerBtn {
+    background-color: rgba(255, 95, 87, 0.10);
+    border: 1px solid rgba(255, 95, 87, 0.20);
+    border-radius: 8px;
+    color: #FF8A84;
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 25px;
+    padding: 1px 8px;
+}
+
 
 #PowerBtn:hover {
-    background-color: #ff355e;
-    color: #ffffff;
+    background-color: rgba(255, 95, 87, 0.22);
+    border-color: rgba(255, 126, 119, 0.46);
+    color: #FFFFFF;
 }
 
+
+#PowerBtn:pressed {
+    background-color: #FF5F57;
+    border-color: #FF756F;
+    color: #FFFFFF;
+}
+
+
 /* ==========================================================================
-   FLOATING BOTTOM DOCK (#DockContainer)
+   FLOATING DOCK
    ========================================================================== */
 #DockContainer {
-    background-color: rgba(15, 20, 29, 0.88);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    border-radius: 20px;
+    background-color: rgba(22, 29, 42, 0.90);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 22px;
+    padding: 8px;
 }
 
-/* Dock Icon Button */
-.DockIconBtn {
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    font-size: 20px;
+
+/* Optional dock separator */
+#DockSeparator {
+    background-color: rgba(255, 255, 255, 0.13);
+    border: none;
+    margin: 8px 4px;
+    max-width: 1px;
 }
+
+
+/* --------------------------------------------------------------------------
+   Dock application buttons
+   -------------------------------------------------------------------------- */
+.DockIconBtn {
+    background-color: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: #F5F7FA;
+    font-size: 21px;
+    min-height: 52px;
+    min-width: 52px;
+    padding: 4px;
+}
+
 
 .DockIconBtn:hover {
-    background-color: rgba(0, 229, 255, 0.25);
-    border: 1px solid #00e5ff;
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.20);
 }
+
+
+.DockIconBtn:pressed {
+    background-color: rgba(10, 132, 255, 0.24);
+    border-color: rgba(64, 156, 255, 0.48);
+}
+
+
+.DockIconBtn:checked {
+    background-color: rgba(10, 132, 255, 0.18);
+    border-color: rgba(64, 156, 255, 0.34);
+}
+
+
+/*
+Use a dynamic QSS property for active/running apps:
+
+    button.setProperty("running", True)
+    button.style().unpolish(button)
+    button.style().polish(button)
+
+The indicator itself should ideally be a separate QLabel/QFrame below
+the button, because QSS does not reliably provide a CSS ::after pseudo-element.
+*/
+.DockIconBtn[running="true"] {
+    border-color: rgba(10, 132, 255, 0.48);
+}
+
+
+/* The separate running-app dot widget */
+#DockRunningIndicator {
+    background-color: #0A84FF;
+    border: none;
+    border-radius: 3px;
+    max-height: 6px;
+    max-width: 6px;
+    min-height: 6px;
+    min-width: 6px;
+}
+
+
+#DockRunningIndicator[urgent="true"] {
+    background-color: #FF9F0A;
+}
+
 
 /* ==========================================================================
-   LAUNCHPAD OVERLAY GRID (#LaunchpadOverlay)
+   LAUNCHPAD
    ========================================================================== */
 #LaunchpadOverlay {
-    background-color: rgba(10, 14, 23, 0.94);
+    background-color: rgba(10, 16, 28, 0.965);
+    border: none;
 }
 
-/* Search Bar */
+
+/* Launchpad heading */
+#LaunchpadTitle {
+    background-color: transparent;
+    color: #F8FAFC;
+    font-size: 26px;
+    font-weight: 700;
+    padding: 2px 0 10px 0;
+}
+
+
+#LaunchpadSubtitle {
+    background-color: transparent;
+    color: #8E99AA;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 0 0 16px 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   Search field
+   -------------------------------------------------------------------------- */
 #LaunchpadSearch {
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 2px solid #00e5ff;
-    border-radius: 20px;
-    padding: 8px 18px;
+    background-color: rgba(255, 255, 255, 0.095);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 15px;
+    color: #F8FAFC;
     font-size: 14px;
-    color: #ffffff;
+    font-weight: 500;
+    min-height: 42px;
+    padding: 0 16px;
+    selection-background-color: #0A84FF;
+    selection-color: #FFFFFF;
 }
 
-/* Launchpad Application Tiles */
+
+#LaunchpadSearch:hover {
+    background-color: rgba(255, 255, 255, 0.125);
+    border-color: rgba(255, 255, 255, 0.24);
+}
+
+
+#LaunchpadSearch:focus {
+    background-color: rgba(19, 33, 52, 0.97);
+    border: 2px solid #0A84FF;
+    color: #FFFFFF;
+}
+
+
+#LaunchpadSearch:disabled {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: transparent;
+    color: rgba(245, 247, 250, 0.36);
+}
+
+
+#LaunchpadSearch::placeholder {
+    color: #7D899B;
+}
+
+
+/* --------------------------------------------------------------------------
+   Application tile
+   If AppTile is a QPushButton, add:
+   QPushButton#AppTile { ... }
+   If it is a generic QWidget, this selector will work as written.
+   -------------------------------------------------------------------------- */
 #AppTile {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.085);
     border-radius: 16px;
+    color: #F5F7FA;
     padding: 12px;
 }
 
+
 #AppTile:hover {
-    background-color: rgba(0, 229, 255, 0.2);
-    border: 1px solid #00e5ff;
+    background-color: rgba(255, 255, 255, 0.115);
+    border-color: rgba(255, 255, 255, 0.22);
 }
 
+
+#AppTile:pressed {
+    background-color: rgba(10, 132, 255, 0.20);
+    border-color: rgba(64, 156, 255, 0.48);
+}
+
+
+#AppTile:focus {
+    border: 2px solid #0A84FF;
+}
+
+
+/* App name and optional description inside a tile */
+#AppTileName {
+    background-color: transparent;
+    color: #F5F7FA;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 6px;
+}
+
+
+#AppTileDescription {
+    background-color: transparent;
+    color: #8E99AA;
+    font-size: 11px;
+    font-weight: 400;
+    padding-top: 2px;
+}
+
+
 /* ==========================================================================
-   SYSTEM DIALOGS (#ModalDialog)
+   WINDOWS, POPOVERS, PANELS, AND DIALOGS
    ========================================================================== */
-#ModalDialog {
-    background-color: #0e131f;
-    border: 2px solid #00e5ff;
-    border-radius: 14px;
+#ModalDialog,
+#SystemPopover,
+#QuickSettingsPanel,
+#NotificationCenter,
+#ControlCenter {
+    background-color: #182233;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    color: #F5F7FA;
+}
+
+
+/* Use this if your modal widget has a separate title area */
+#DialogTitle,
+#PopoverTitle,
+#PanelTitle {
+    background-color: transparent;
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 4px 2px 8px 2px;
+}
+
+
+#DialogDescription,
+#PopoverDescription,
+#PanelDescription {
+    background-color: transparent;
+    color: #A8B1C0;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 0 2px 10px 2px;
+}
+
+
+/* Generic content card */
+#Card,
+#SettingsCard,
+#NotificationCard {
+    background-color: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+
+#Card:hover,
+#SettingsCard:hover,
+#NotificationCard:hover {
+    background-color: rgba(255, 255, 255, 0.085);
+    border-color: rgba(255, 255, 255, 0.13);
+}
+
+
+/* ==========================================================================
+   BUTTON SYSTEM
+   Apply object names or classes in Python:
+   Primary:   setObjectName("PrimaryButton")
+   Secondary: setObjectName("SecondaryButton")
+   Danger:    setObjectName("DangerButton")
+   ========================================================================== */
+#PrimaryButton {
+    background-color: #0A84FF;
+    border: 1px solid #278FFF;
+    border-radius: 9px;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 34px;
+    padding: 0 14px;
+}
+
+
+#PrimaryButton:hover {
+    background-color: #409CFF;
+    border-color: #65B0FF;
+}
+
+
+#PrimaryButton:pressed {
+    background-color: #006EDC;
+    border-color: #0065C9;
+}
+
+
+#PrimaryButton:disabled {
+    background-color: rgba(10, 132, 255, 0.28);
+    border-color: transparent;
+    color: rgba(255, 255, 255, 0.48);
+}
+
+
+#SecondaryButton {
+    background-color: rgba(255, 255, 255, 0.085);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 9px;
+    color: #E8EDF5;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 34px;
+    padding: 0 14px;
+}
+
+
+#SecondaryButton:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.23);
+    color: #FFFFFF;
+}
+
+
+#SecondaryButton:pressed {
+    background-color: rgba(255, 255, 255, 0.20);
+}
+
+
+#DangerButton {
+    background-color: rgba(255, 95, 87, 0.14);
+    border: 1px solid rgba(255, 95, 87, 0.28);
+    border-radius: 9px;
+    color: #FFAAA5;
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 34px;
+    padding: 0 14px;
+}
+
+
+#DangerButton:hover {
+    background-color: #FF5F57;
+    border-color: #FF756F;
+    color: #FFFFFF;
+}
+
+
+#DangerButton:pressed {
+    background-color: #E94740;
+    border-color: #D83D37;
+}
+
+
+/* ==========================================================================
+   INPUTS, LISTS, SCROLLBARS
+   ========================================================================== */
+QLineEdit,
+QTextEdit,
+QPlainTextEdit,
+QSpinBox,
+QComboBox {
+    background-color: rgba(255, 255, 255, 0.075);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 8px;
+    color: #F5F7FA;
+    min-height: 30px;
+    padding: 3px 9px;
+    selection-background-color: #0A84FF;
+    selection-color: #FFFFFF;
+}
+
+
+QLineEdit:hover,
+QTextEdit:hover,
+QPlainTextEdit:hover,
+QSpinBox:hover,
+QComboBox:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+}
+
+
+QLineEdit:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus,
+QSpinBox:focus,
+QComboBox:focus {
+    background-color: rgba(21, 35, 55, 0.96);
+    border: 2px solid #0A84FF;
+}
+
+
+QListView,
+QTreeView,
+QTableView {
+    alternate-background-color: rgba(255, 255, 255, 0.025);
+    background-color: transparent;
+    border: none;
+    color: #E8EDF5;
+    outline: none;
+    selection-background-color: rgba(10, 132, 255, 0.34);
+    selection-color: #FFFFFF;
+}
+
+
+QListView::item,
+QTreeView::item,
+QTableView::item {
+    border-radius: 6px;
+    min-height: 28px;
+    padding: 4px 8px;
+}
+
+
+QListView::item:hover,
+QTreeView::item:hover,
+QTableView::item:hover {
+    background-color: rgba(255, 255, 255, 0.09);
+}
+
+
+QListView::item:selected,
+QTreeView::item:selected,
+QTableView::item:selected {
+    background-color: rgba(10, 132, 255, 0.36);
+    color: #FFFFFF;
+}
+
+
+/* ==========================================================================
+   CHECKBOXES, RADIO BUTTONS, AND SWITCH-LIKE CONTROLS
+   ========================================================================== */
+QCheckBox,
+QRadioButton {
+    color: #DCE3ED;
+    font-size: 13px;
+    spacing: 8px;
+}
+
+
+QCheckBox::indicator {
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 5px;
+    height: 16px;
+    width: 16px;
+}
+
+
+QCheckBox::indicator:hover {
+    border-color: rgba(100, 182, 255, 0.72);
+}
+
+
+QCheckBox::indicator:checked {
+    background-color: #0A84FF;
+    border-color: #409CFF;
+}
+
+
+QCheckBox::indicator:disabled {
+    background-color: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+
+QRadioButton::indicator {
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 8px;
+    height: 16px;
+    width: 16px;
+}
+
+
+QRadioButton::indicator:checked {
+    background-color: #0A84FF;
+    border: 4px solid #0A84FF;
+}
+
+
+/* ==========================================================================
+   SCROLLBARS
+   ========================================================================== */
+QScrollBar:vertical {
+    background: transparent;
+    border: none;
+    margin: 5px 3px 5px 0;
+    width: 8px;
+}
+
+
+QScrollBar::handle:vertical {
+    background-color: rgba(197, 210, 224, 0.30);
+    border: none;
+    border-radius: 4px;
+    min-height: 28px;
+}
+
+
+QScrollBar::handle:vertical:hover {
+    background-color: rgba(225, 233, 242, 0.52);
+}
+
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    background: transparent;
+    border: none;
+    height: 0;
+}
+
+
+QScrollBar:horizontal {
+    background: transparent;
+    border: none;
+    margin: 0 5px 3px 5px;
+    height: 8px;
+}
+
+
+QScrollBar::handle:horizontal {
+    background-color: rgba(197, 210, 224, 0.30);
+    border: none;
+    border-radius: 4px;
+    min-width: 28px;
+}
+
+
+QScrollBar::handle:horizontal:hover {
+    background-color: rgba(225, 233, 242, 0.52);
+}
+
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    background: transparent;
+    border: none;
+    width: 0;
+}
+
+
+/* ==========================================================================
+   TOOLTIPS AND MENUS
+   ========================================================================== */
+QToolTip {
+    background-color: #202B3D;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 7px;
+    color: #F5F7FA;
+    font-size: 11px;
+    padding: 5px 8px;
+}
+
+
+QMenu {
+    background-color: #1A2536;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #EAF0F7;
+    font-size: 13px;
+    padding: 5px;
+}
+
+
+QMenu::item {
+    background-color: transparent;
+    border-radius: 6px;
+    min-height: 25px;
+    padding: 5px 26px 5px 10px;
+}
+
+
+QMenu::item:selected {
+    background-color: rgba(10, 132, 255, 0.28);
+    color: #FFFFFF;
+}
+
+
+QMenu::separator {
+    background-color: rgba(255, 255, 255, 0.09);
+    height: 1px;
+    margin: 5px 7px;
+}
+
+
+/* ==========================================================================
+   KEYBOARD FOCUS
+   Keep focus clear for keyboard-only navigation.
+   ========================================================================== */
+QPushButton:focus,
+QToolButton:focus,
+QLineEdit:focus,
+QComboBox:focus,
+QCheckBox:focus,
+QRadioButton:focus {
+    border-color: #0A84FF;
 }
