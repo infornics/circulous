@@ -1,0 +1,157 @@
+/*
+==============================================================================
+Circulous Desktop Theme (theme.css)
+==============================================================================
+Qt Style Sheet (QSS / CSS) for Circulous Desktop Shell.
+Feel free to customize colors, borders, gradients, and fonts below!
+==============================================================================
+*/
+
+QWidget {
+    font-family: "Ubuntu", "Noto Color Emoji", "Segoe UI Emoji", "DejaVu Sans", sans-serif;
+    color: #f0f6fc;
+}
+
+/* ==========================================================================
+   TOP STATUS BAR (#TopBar)
+   ========================================================================== */
+#TopBar {
+    background-color: rgba(14, 19, 31, 0.92);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+/* Circulous Logo Button */
+#LogoBtn {
+    background-color: transparent;
+    color: #00e5ff;
+    font-weight: bold;
+    font-size: 13px;
+    border: none;
+    padding: 2px 10px;
+    border-radius: 4px;
+}
+
+#LogoBtn:hover {
+    background-color: rgba(0, 229, 255, 0.18);
+}
+
+/* Active Application Title */
+#AppTitleLbl {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 0 8px;
+}
+
+/* Top Bar Global Menu Buttons */
+.MenuBtn {
+    background: transparent;
+    color: #c9d1d9;
+    font-size: 11px;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.MenuBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* Metric Status Pills (CPU, RAM, Network) */
+#StatusPill {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Clock & Date Pill */
+#ClockPill {
+    background-color: rgba(0, 229, 255, 0.12);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    color: #00e5ff;
+    font-weight: bold;
+    font-size: 11px;
+    border-radius: 6px;
+    padding: 2px 10px;
+}
+
+/* Power Action Button */
+#PowerBtn {
+    background-color: rgba(255, 53, 94, 0.2);
+    border: 1px solid rgba(255, 53, 94, 0.5);
+    color: #ff355e;
+    font-weight: bold;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+
+#PowerBtn:hover {
+    background-color: #ff355e;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   FLOATING BOTTOM DOCK (#DockContainer)
+   ========================================================================== */
+#DockContainer {
+    background-color: rgba(15, 20, 29, 0.88);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 20px;
+}
+
+/* Dock Icon Button */
+.DockIconBtn {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.DockIconBtn:hover {
+    background-color: rgba(0, 229, 255, 0.25);
+    border: 1px solid #00e5ff;
+}
+
+/* ==========================================================================
+   LAUNCHPAD OVERLAY GRID (#LaunchpadOverlay)
+   ========================================================================== */
+#LaunchpadOverlay {
+    background-color: rgba(10, 14, 23, 0.94);
+}
+
+/* Search Bar */
+#LaunchpadSearch {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 2px solid #00e5ff;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+/* Launchpad Application Tiles */
+#AppTile {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 12px;
+}
+
+#AppTile:hover {
+    background-color: rgba(0, 229, 255, 0.2);
+    border: 1px solid #00e5ff;
+}
+
+/* ==========================================================================
+   SYSTEM DIALOGS (#ModalDialog)
+   ========================================================================== */
+#ModalDialog {
+    background-color: #0e131f;
+    border: 2px solid #00e5ff;
+    border-radius: 14px;
+}

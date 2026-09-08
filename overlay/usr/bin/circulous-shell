@@ -682,9 +682,25 @@ class CirculousDesktopShell:
             print(f"Error launching {cmd}: {e}")
 
 
+def load_stylesheet():
+    css_paths = [
+        "/usr/share/circulous/styles/theme.css",
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../share/circulous/styles/theme.css")),
+        os.path.abspath("overlay/usr/share/circulous/styles/theme.css"),
+    ]
+    for path in css_paths:
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return f.read()
+            except Exception as e:
+                print(f"Error loading CSS from {path}: {e}")
+    return CIRCULOUS_QSS
+
+
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(CIRCULOUS_QSS)
+    app.setStyleSheet(load_stylesheet())
 
     shell = CirculousDesktopShell()
     shell.show()
