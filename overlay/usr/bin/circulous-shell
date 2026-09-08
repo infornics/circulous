@@ -601,8 +601,7 @@ class CirculousTopBar(QWidget):
         self.ram_lbl.setObjectName("StatusPill")
         layout.addWidget(self.ram_lbl)
 
-        self.net_lbl = QLabel("Online")
-        self.net_lbl.setIcon(QIcon.fromTheme("network-transmit-receive"))
+        self.net_lbl = QLabel("📶 Online")
         self.net_lbl.setObjectName("StatusPill")
         layout.addWidget(self.net_lbl)
 
