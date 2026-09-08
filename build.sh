@@ -76,12 +76,6 @@ stage_bootstrap() {
 stage_chroot() {
     info "Phase 2: Customizing rootfs inside chroot..."
 
-    # Copy filesystem overlay into rootfs
-    if [ -d "${PROJECT_DIR}/overlay" ]; then
-        info "Applying overlay files..."
-        cp -a "${PROJECT_DIR}/overlay/." "${ROOTFS_DIR}/"
-    fi
-
     # Copy package list and chroot script
     cp "${PROJECT_DIR}/config/packages.list" "${ROOTFS_DIR}/tmp/packages.list"
     cp "${PROJECT_DIR}/scripts/chroot_customize.sh" "${ROOTFS_DIR}/tmp/chroot_customize.sh"
@@ -97,6 +91,18 @@ stage_chroot() {
     # Run chroot script
     info "Executing customization script inside chroot..."
     chroot "${ROOTFS_DIR}" /bin/bash /tmp/chroot_customize.sh
+
+    # Apply filesystem overlay AFTER package installation so custom configs are preserved
+    if [ -d "${PROJECT_DIR}/overlay" ]; then
+        info "Applying filesystem overlay (overriding package defaults)..."
+        cp -a "${PROJECT_DIR}/overlay/." "${ROOTFS_DIR}/"
+    fi
+
+    # Sync live user home directory with skel
+    if [ -d "${ROOTFS_DIR}/etc/skel" ] && [ -d "${ROOTFS_DIR}/home/circulous" ]; then
+        cp -a "${ROOTFS_DIR}/etc/skel/." "${ROOTFS_DIR}/home/circulous/"
+        chroot "${ROOTFS_DIR}" chown -R circulous:circulous /home/circulous/
+    fi
 
     # Unmount bind mounts
     info "Unmounting pseudofs..."
