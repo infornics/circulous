@@ -1,5 +1,8 @@
 # Openbox System-wide Autostart Script for Circulous
 
+# Set X11 resolution to HD 1280x720 for QEMU / Hardware
+xrandr -s 1280x720 2>/dev/null || xrandr -s 1024x768 2>/dev/null || true
+
 # Draw Desktop Icons and Wallpaper via PCManFM-Qt
 pcmanfm-qt --desktop &
 

@@ -42,9 +42,9 @@ QWidget {
     background-color: #00e5ff;
     color: #000000;
     font-weight: bold;
-    font-size: 13px;
-    border-radius: 6px;
-    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 3px 10px;
     margin: 2px;
 }
 
@@ -54,32 +54,32 @@ QWidget {
 }
 
 #StatusPill {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    padding: 3px 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 5px;
+    padding: 2px 6px;
     font-size: 11px;
     font-weight: bold;
 }
 
 #ClockPill {
-    background-color: rgba(0, 229, 255, 0.2);
+    background-color: rgba(0, 229, 255, 0.15);
     border: 1px solid #00e5ff;
     color: #00e5ff;
     font-weight: bold;
-    font-size: 12px;
-    border-radius: 6px;
-    padding: 3px 10px;
+    font-size: 11px;
+    border-radius: 5px;
+    padding: 2px 8px;
 }
 
 #PowerBtn {
-    background-color: rgba(255, 53, 94, 0.3);
+    background-color: rgba(255, 53, 94, 0.25);
     border: 1px solid #ff355e;
     color: #ff355e;
     font-weight: bold;
-    font-size: 13px;
-    border-radius: 6px;
-    padding: 3px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 2px 8px;
 }
 
 #PowerBtn:hover {
@@ -90,23 +90,23 @@ QWidget {
 #LauncherWindow {
     background-color: #0e131f;
     border: 2px solid #00e5ff;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 #SearchBox {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid #00e5ff;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
     color: #ffffff;
 }
 
 #AppGridBtn {
     background-color: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 6px;
+    padding: 8px 10px;
     text-align: left;
     font-size: 12px;
     font-weight: bold;
@@ -136,17 +136,17 @@ class CirculousLauncher(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setObjectName("LauncherWindow")
-        self.resize(380, 420)
+        self.resize(360, 400)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
 
         # Header
         header = QLabel("🌀 Circulous Launcher")
-        header.setFont(QFont("Ubuntu", 13, QFont.Weight.Bold))
+        header.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
         header.setStyleSheet("color: #00e5ff; margin-bottom: 2px;")
         layout.addWidget(header)
 
@@ -164,7 +164,7 @@ class CirculousLauncher(QWidget):
 
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
-        self.scroll_layout.setSpacing(6)
+        self.scroll_layout.setSpacing(4)
         self.scroll_layout.setContentsMargins(0, 0, 0, 0)
 
         self.app_buttons = []
@@ -200,12 +200,12 @@ class PowerDialog(QDialog):
     """System Power Options Dialog"""
     def __init__(self, parent=None):
         super().__init__(parent, Qt.WindowType.FramelessWindowHint)
-        self.setStyleSheet("background-color: #0e131f; border: 2px solid #ff355e; border-radius: 12px; padding: 16px;")
+        self.setStyleSheet("background-color: #0e131f; border: 2px solid #ff355e; border-radius: 10px; padding: 14px;")
         layout = QVBoxLayout(self)
 
         title = QLabel("🌀 Session Options")
-        title.setFont(QFont("Ubuntu", 13, QFont.Weight.Bold))
-        title.setStyleSheet("color: #ff355e; margin-bottom: 10px;")
+        title.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
+        title.setStyleSheet("color: #ff355e; margin-bottom: 8px;")
         layout.addWidget(title)
 
         reboot_btn = QPushButton("🔄 Restart System")
@@ -238,7 +238,7 @@ class CirculousPanel(QWidget):
         
         self.screen = QApplication.primaryScreen()
         screen_geo = self.screen.geometry()
-        self.setGeometry(0, 0, screen_geo.width(), 40)
+        self.setGeometry(0, 0, screen_geo.width(), 36)
         
         # Connect screen geometry change signal
         self.screen.geometryChanged.connect(self.on_screen_resized)
@@ -253,12 +253,16 @@ class CirculousPanel(QWidget):
         self.update_metrics()
 
     def on_screen_resized(self, geo):
-        self.setGeometry(0, 0, geo.width(), 40)
+        self.setGeometry(0, 0, geo.width(), 36)
+        if geo.width() < 900:
+            self.title_lbl.hide()
+        else:
+            self.title_lbl.show()
 
     def init_ui(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(6, 2, 6, 2)
-        layout.setSpacing(8)
+        layout.setContentsMargins(4, 2, 4, 2)
+        layout.setSpacing(6)
 
         # Left Section: Circulous Menu Button
         self.menu_btn = QPushButton("🌀 Circulous")
@@ -268,22 +272,22 @@ class CirculousPanel(QWidget):
         layout.addWidget(self.menu_btn)
 
         # Active Session Title
-        self.title_lbl = QLabel("Circulous 1.0 (Live Session)")
+        self.title_lbl = QLabel("Circulous 1.0")
         self.title_lbl.setStyleSheet("color: #00e5ff; font-weight: bold; font-size: 12px;")
         layout.addWidget(self.title_lbl)
 
         layout.addStretch()
 
         # Right Section: Metrics & Clock & Power
-        self.cpu_lbl = QLabel("🧠 CPU: --%")
+        self.cpu_lbl = QLabel("CPU: --%")
         self.cpu_lbl.setObjectName("StatusPill")
         layout.addWidget(self.cpu_lbl)
 
-        self.ram_lbl = QLabel("💾 RAM: --%")
+        self.ram_lbl = QLabel("RAM: --%")
         self.ram_lbl.setObjectName("StatusPill")
         layout.addWidget(self.ram_lbl)
 
-        self.clock_lbl = QLabel("🕒 --:--")
+        self.clock_lbl = QLabel("--:--")
         self.clock_lbl.setObjectName("ClockPill")
         layout.addWidget(self.clock_lbl)
 
@@ -295,16 +299,15 @@ class CirculousPanel(QWidget):
 
     def update_metrics(self):
         # Update Date & Clock
-        now = QTime.currentTime().toString("hh:mm:ss")
-        date_str = QDate.currentDate().toString("ddd, d MMM")
-        self.clock_lbl.setText(f"🕒 {date_str} {now}")
+        now = QTime.currentTime().toString("hh:mm")
+        self.clock_lbl.setText(f"{now}")
 
         # Update CPU & RAM metrics
         if HAS_PSUTIL:
             cpu = psutil.cpu_percent()
             ram = psutil.virtual_memory().percent
-            self.cpu_lbl.setText(f"🧠 CPU: {cpu:.0f}%")
-            self.ram_lbl.setText(f"💾 RAM: {ram:.0f}%")
+            self.cpu_lbl.setText(f"CPU: {cpu:.0f}%")
+            self.ram_lbl.setText(f"RAM: {ram:.0f}%")
 
     def toggle_launcher(self):
         if self.launcher.isVisible():
