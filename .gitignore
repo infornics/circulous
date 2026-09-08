@@ -4,6 +4,12 @@
 *.iso
 *.squashfs
 
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+
 # Temporary & Swap Files
 *.swp
 *~
@@ -11,3 +17,4 @@
 
 # Log Files
 *.log
+
