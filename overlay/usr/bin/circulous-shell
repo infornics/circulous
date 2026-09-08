@@ -3,20 +3,30 @@
 ==============================================================================
 Circulous Shell (circulous-shell)
 ==============================================================================
-Custom Native Desktop Environment Shell for Circulous Distribution.
+Native macOS-Inspired Desktop Shell for Circulous Distribution.
 Built with Python 3 and PyQt6.
+
+Features:
+- CirculousTopBar: Sleek macOS status bar with Circulous branding, active app title,
+  global menus, CPU/RAM metrics pills, clock/date, and power options.
+- CirculousDock: Floating glass dock with rounded capsule styling, app launchers,
+  magnification hover effects, and active process indicators.
+- CirculousLaunchpad: Full-screen overlay app launcher grid with live filter search.
+- CirculousAboutDialog: Apple-style "About Circulous" system info panel.
+- CirculousPowerDialog: Clean session control (Reboot / Shut Down / Logout).
 ==============================================================================
 """
 
 import sys
 import os
 import subprocess
-from PyQt6.QtCore import Qt, QTimer, QTime, QDate
+from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize, QEvent
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
-    QLabel, QLineEdit, QScrollArea, QDialog
+    QLabel, QLineEdit, QScrollArea, QDialog, QGridLayout, QFrame,
+    QMenu, QGraphicsDropShadowEffect
 )
-from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtGui import QFont, QCursor, QColor, QIcon, QAction
 
 # Try importing psutil for CPU/RAM system metrics
 try:
@@ -26,59 +36,168 @@ except ImportError:
     HAS_PSUTIL = False
 
 
-# QSS Stylesheet for Circulous Dark Glassmorphism Theme
+# Application Launcher Registry
+DOCK_APPS = [
+    {
+        "id": "launchpad",
+        "name": "Launchpad",
+        "icon": "🚀",
+        "cmd": "LAUNCHPAD_TOGGLE",
+        "desc": "Show All Applications",
+        "category": "System"
+    },
+    {
+        "id": "files",
+        "name": "Files",
+        "icon": "📁",
+        "cmd": "pcmanfm-qt",
+        "desc": "File Manager",
+        "category": "Utilities"
+    },
+    {
+        "id": "terminal",
+        "name": "Terminal",
+        "icon": "🖥️",
+        "cmd": "qterminal",
+        "desc": "Terminal Emulator",
+        "category": "System"
+    },
+    {
+        "id": "editor",
+        "name": "Text Editor",
+        "icon": "📝",
+        "cmd": "featherpad",
+        "desc": "FeatherPad Code & Text Editor",
+        "category": "Text"
+    },
+    {
+        "id": "installer",
+        "name": "Install Circulous",
+        "icon": "💿",
+        "cmd": "sudo calamares",
+        "desc": "Install Circulous to Hard Drive",
+        "category": "System"
+    },
+    {
+        "id": "settings",
+        "name": "Openbox Settings",
+        "icon": "⚙️",
+        "cmd": "obconf-qt",
+        "desc": "Window Manager Configuration",
+        "category": "Settings"
+    },
+    {
+        "id": "disks",
+        "name": "Disks",
+        "icon": "💾",
+        "cmd": "gparted",
+        "desc": "GParted Partition Manager",
+        "category": "Utilities"
+    },
+    {
+        "id": "monitor",
+        "name": "Activity Monitor",
+        "icon": "📊",
+        "cmd": "qterminal -e htop",
+        "desc": "System Resource Monitor",
+        "category": "System"
+    }
+]
+
+LAUNCHPAD_EXTRA_APPS = [
+    {
+        "id": "web",
+        "name": "Web Browser",
+        "icon": "🌐",
+        "cmd": "x-www-browser",
+        "desc": "Explore the Web",
+        "category": "Internet"
+    },
+    {
+        "id": "calc",
+        "name": "Calculator",
+        "icon": "🧮",
+        "cmd": "qterminal -e python3",
+        "desc": "Python Interactive Console",
+        "category": "Utilities"
+    }
+]
+
+
+# QSS Stylesheet for macOS-inspired Dark Glassmorphism Theme
 CIRCULOUS_QSS = """
 QWidget {
     font-family: "Ubuntu", "DejaVu Sans", "Segoe UI", sans-serif;
-    color: #e6edf3;
+    color: #f0f6fc;
 }
 
-#TopPanel {
-    background-color: #0e131f;
-    border-bottom: 2px solid #00e5ff;
+/* ---------------- TOP BAR ---------------- */
+#TopBar {
+    background-color: rgba(14, 19, 31, 0.92);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.25);
 }
 
-#CirculousMenuBtn {
-    background-color: #00e5ff;
-    color: #000000;
+#LogoBtn {
+    background-color: transparent;
+    color: #00e5ff;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    padding: 2px 10px;
+    border-radius: 4px;
+}
+
+#LogoBtn:hover {
+    background-color: rgba(0, 229, 255, 0.18);
+}
+
+#AppTitleLbl {
+    color: #ffffff;
     font-weight: bold;
     font-size: 12px;
-    border-radius: 5px;
-    padding: 3px 10px;
-    margin: 2px;
+    padding: 0 8px;
 }
 
-#CirculousMenuBtn:hover {
-    background-color: #7c4dff;
+.MenuBtn {
+    background: transparent;
+    color: #c9d1d9;
+    font-size: 11px;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.MenuBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }
 
 #StatusPill {
     background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 5px;
-    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 2px 8px;
     font-size: 11px;
     font-weight: bold;
 }
 
 #ClockPill {
-    background-color: rgba(0, 229, 255, 0.15);
-    border: 1px solid #00e5ff;
+    background-color: rgba(0, 229, 255, 0.12);
+    border: 1px solid rgba(0, 229, 255, 0.4);
     color: #00e5ff;
     font-weight: bold;
     font-size: 11px;
-    border-radius: 5px;
-    padding: 2px 8px;
+    border-radius: 6px;
+    padding: 2px 10px;
 }
 
 #PowerBtn {
-    background-color: rgba(255, 53, 94, 0.25);
-    border: 1px solid #ff355e;
+    background-color: rgba(255, 53, 94, 0.2);
+    border: 1px solid rgba(255, 53, 94, 0.5);
     color: #ff355e;
     font-weight: bold;
     font-size: 12px;
-    border-radius: 5px;
+    border-radius: 6px;
     padding: 2px 8px;
 }
 
@@ -87,198 +206,368 @@ QWidget {
     color: #ffffff;
 }
 
-#LauncherWindow {
+/* ---------------- DOCK ---------------- */
+#DockContainer {
+    background-color: rgba(15, 20, 29, 0.88);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 20px;
+}
+
+.DockIconBtn {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    font-size: 24px;
+}
+
+.DockIconBtn:hover {
+    background-color: rgba(0, 229, 255, 0.25);
+    border: 1px solid #00e5ff;
+}
+
+/* ---------------- LAUNCHPAD ---------------- */
+#LaunchpadOverlay {
+    background-color: rgba(10, 14, 23, 0.94);
+}
+
+#LaunchpadSearch {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 2px solid #00e5ff;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+#AppTile {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+#AppTile:hover {
+    background-color: rgba(0, 229, 255, 0.2);
+    border: 1px solid #00e5ff;
+}
+
+/* ---------------- DIALOGS ---------------- */
+#ModalDialog {
     background-color: #0e131f;
     border: 2px solid #00e5ff;
-    border-radius: 10px;
-}
-
-#SearchBox {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid #00e5ff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    color: #ffffff;
-}
-
-#AppGridBtn {
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    padding: 8px 10px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-#AppGridBtn:hover {
-    background-color: rgba(0, 229, 255, 0.3);
-    border: 1px solid #00e5ff;
-    color: #ffffff;
+    border-radius: 14px;
 }
 """
 
 
-APPS_LIST = [
-    {"name": "🖥️ Terminal", "cmd": "qterminal", "desc": "Circulous Terminal"},
-    {"name": "📁 File Manager", "cmd": "pcmanfm-qt", "desc": "Browse Files"},
-    {"name": "📝 Text Editor", "cmd": "featherpad", "desc": "FeatherPad Editor"},
-    {"name": "💿 Install Circulous", "cmd": "sudo calamares", "desc": "System Installer"},
-    {"name": "⚙️ Openbox Config", "cmd": "obconf-qt", "desc": "Window Manager Settings"},
-    {"name": "💾 Disk Manager", "cmd": "gparted", "desc": "GParted Partition Editor"},
-    {"name": "📊 Task Manager", "cmd": "qterminal -e htop", "desc": "System Process Monitor"},
-]
-
-
-class CirculousLauncher(QWidget):
-    """Application Launcher Start Menu Window"""
+class AboutDialog(QDialog):
+    """macOS-inspired About Circulous Information Panel"""
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
-        self.setObjectName("LauncherWindow")
-        self.resize(360, 400)
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setObjectName("ModalDialog")
+        self.setFixedSize(380, 280)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(6)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(10)
 
-        # Header
-        header = QLabel("🌀 Circulous Launcher")
-        header.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
-        header.setStyleSheet("color: #00e5ff; margin-bottom: 2px;")
-        layout.addWidget(header)
+        logo = QLabel("🌀")
+        logo.setFont(QFont("Ubuntu", 42))
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(logo)
 
-        # Search Bar
-        self.search_box = QLineEdit()
-        self.search_box.setObjectName("SearchBox")
-        self.search_box.setPlaceholderText("Type to search apps...")
-        self.search_box.textChanged.connect(self.filter_apps)
-        layout.addWidget(self.search_box)
+        title = QLabel("Circulous Distribution")
+        title.setFont(QFont("Ubuntu", 16, QFont.Weight.Bold))
+        title.setStyleSheet("color: #00e5ff;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
 
-        # Scroll Area for Apps
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("background: transparent; border: none;")
+        version = QLabel("Version 1.0 Resolute (26.04 LTS)\nBuilt on Linux Kernel & Openbox Engine")
+        version.setFont(QFont("Ubuntu", 10))
+        version.setStyleSheet("color: #8b949e;")
+        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(version)
 
-        self.scroll_content = QWidget()
-        self.scroll_layout = QVBoxLayout(self.scroll_content)
-        self.scroll_layout.setSpacing(4)
-        self.scroll_layout.setContentsMargins(0, 0, 0, 0)
+        info = QLabel("Circulous Native Desktop Shell (PyQt6)\n© 2026 Infornics Circulous Project")
+        info.setFont(QFont("Ubuntu", 9))
+        info.setStyleSheet("color: #6e7681; margin-top: 6px;")
+        info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info)
 
-        self.app_buttons = []
-        for app in APPS_LIST:
-            btn = QPushButton(f"{app['name']}\n  {app['desc']}")
-            btn.setObjectName("AppGridBtn")
-            btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-            btn.clicked.connect(lambda _, cmd=app['cmd']: self.launch_app(cmd))
-            self.scroll_layout.addWidget(btn)
-            self.app_buttons.append((app, btn))
-
-        self.scroll_layout.addStretch()
-        scroll.setWidget(self.scroll_content)
-        layout.addWidget(scroll)
-
-    def filter_apps(self, text):
-        query = text.lower().strip()
-        for app, btn in self.app_buttons:
-            if query in app['name'].lower() or query in app['desc'].lower():
-                btn.show()
-            else:
-                btn.hide()
-
-    def launch_app(self, cmd):
-        self.hide()
-        try:
-            subprocess.Popen(cmd.split())
-        except Exception as e:
-            print(f"Error launching {cmd}: {e}")
+        close_btn = QPushButton("Close")
+        close_btn.setStyleSheet("background: #00e5ff; color: #000; font-weight: bold; border-radius: 6px; padding: 6px;")
+        close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        close_btn.clicked.connect(self.close)
+        layout.addWidget(close_btn)
 
 
 class PowerDialog(QDialog):
-    """System Power Options Dialog"""
+    """System Session Power & Shutdown Dialog"""
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.WindowType.FramelessWindowHint)
-        self.setStyleSheet("background-color: #0e131f; border: 2px solid #ff355e; border-radius: 10px; padding: 14px;")
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setObjectName("ModalDialog")
+        self.setStyleSheet("background-color: #0e131f; border: 2px solid #ff355e; border-radius: 14px; padding: 10px;")
+        self.setFixedSize(320, 220)
+        self.init_ui()
+
+    def init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(8)
 
         title = QLabel("🌀 Session Options")
-        title.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
-        title.setStyleSheet("color: #ff355e; margin-bottom: 8px;")
+        title.setFont(QFont("Ubuntu", 14, QFont.Weight.Bold))
+        title.setStyleSheet("color: #ff355e;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         reboot_btn = QPushButton("🔄 Restart System")
-        reboot_btn.setStyleSheet("background: rgba(0,229,255,0.2); border: 1px solid #00e5ff; color: #fff; padding: 8px; border-radius: 6px;")
+        reboot_btn.setStyleSheet("background: rgba(0,229,255,0.2); border: 1px solid #00e5ff; color: #fff; padding: 8px; border-radius: 8px; font-weight: bold;")
+        reboot_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         reboot_btn.clicked.connect(lambda: subprocess.Popen(["systemctl", "reboot"]))
         layout.addWidget(reboot_btn)
 
         poweroff_btn = QPushButton("⏻ Shut Down")
-        poweroff_btn.setStyleSheet("background: rgba(255,53,94,0.3); border: 1px solid #ff355e; color: #fff; padding: 8px; border-radius: 6px;")
+        poweroff_btn.setStyleSheet("background: rgba(255,53,94,0.3); border: 1px solid #ff355e; color: #fff; padding: 8px; border-radius: 8px; font-weight: bold;")
+        poweroff_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         poweroff_btn.clicked.connect(lambda: subprocess.Popen(["systemctl", "poweroff"]))
         layout.addWidget(poweroff_btn)
 
-        cancel_btn = QPushButton("❌ Cancel")
+        cancel_btn = QPushButton("Cancel")
         cancel_btn.setStyleSheet("background: rgba(255,255,255,0.1); color: #ccc; padding: 6px; border-radius: 6px;")
+        cancel_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         cancel_btn.clicked.connect(self.close)
         layout.addWidget(cancel_btn)
 
 
-class CirculousPanel(QWidget):
-    """Main Desktop Top Bar Panel"""
-    def __init__(self):
-        super().__init__()
-        self.setObjectName("TopPanel")
+class CirculousLaunchpad(QWidget):
+    """Full-Screen macOS Launchpad Overlay Grid"""
+    def __init__(self, launcher_callback, parent=None):
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        self.setObjectName("LaunchpadOverlay")
+        self.launcher_callback = launcher_callback
         
-        # Configure X11 Panel Window Flags
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint
-        )
+        screen = QApplication.primaryScreen().geometry()
+        self.setGeometry(0, 0, screen.width(), screen.height())
+        self.init_ui()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(60, 40, 60, 40)
+        main_layout.setSpacing(20)
+
+        # Top Header & Search Bar
+        header_layout = QHBoxLayout()
+        header_layout.addStretch()
+
+        self.search_box = QLineEdit()
+        self.search_box.setObjectName("LaunchpadSearch")
+        self.search_box.setPlaceholderText("🔍 Search Applications in Circulous...")
+        self.search_box.setFixedWidth(400)
+        self.search_box.textChanged.connect(self.filter_apps)
+        header_layout.addWidget(self.search_box)
+
+        header_layout.addStretch()
+        main_layout.addLayout(header_layout)
+
+        # App Grid Scroll Container
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("background: transparent; border: none;")
+
+        grid_widget = QWidget()
+        grid_widget.setStyleSheet("background: transparent;")
+        self.grid_layout = QGridLayout(grid_widget)
+        self.grid_layout.setSpacing(20)
+
+        all_apps = DOCK_APPS + LAUNCHPAD_EXTRA_APPS
+        self.app_tiles = []
+
+        cols = 4
+        for idx, app in enumerate(all_apps):
+            if app["cmd"] == "LAUNCHPAD_TOGGLE":
+                continue
+
+            row = idx // cols
+            col = idx % cols
+
+            tile = QPushButton()
+            tile.setObjectName("AppTile")
+            tile.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            tile.setFixedSize(220, 120)
+
+            tile_layout = QVBoxLayout(tile)
+            tile_layout.setContentsMargins(10, 10, 10, 10)
+            tile_layout.setSpacing(4)
+
+            icon_lbl = QLabel(app["icon"])
+            icon_lbl.setFont(QFont("Ubuntu", 28))
+            icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            name_lbl = QLabel(app["name"])
+            name_lbl.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
+            name_lbl.setStyleSheet("color: #00e5ff;")
+            name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            desc_lbl = QLabel(app["desc"])
+            desc_lbl.setFont(QFont("Ubuntu", 9))
+            desc_lbl.setStyleSheet("color: #8b949e;")
+            desc_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            tile_layout.addWidget(icon_lbl)
+            tile_layout.addWidget(name_lbl)
+            tile_layout.addWidget(desc_lbl)
+
+            tile.clicked.connect(lambda _, cmd=app["cmd"]: self.on_app_clicked(cmd))
+            self.grid_layout.addWidget(tile, row, col)
+            self.app_tiles.append((app, tile))
+
+        scroll.setWidget(grid_widget)
+        main_layout.addWidget(scroll)
+
+        # ESC instructions label
+        esc_lbl = QLabel("Press ESC or click anywhere to exit Launchpad")
+        esc_lbl.setFont(QFont("Ubuntu", 10))
+        esc_lbl.setStyleSheet("color: #6e7681; margin-top: 10px;")
+        esc_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(esc_lbl)
+
+    def filter_apps(self, text):
+        query = text.lower().strip()
+        for app, tile in self.app_tiles:
+            if query in app["name"].lower() or query in app["desc"].lower() or query in app["category"].lower():
+                tile.show()
+            else:
+                tile.hide()
+
+    def on_app_clicked(self, cmd):
+        self.hide()
+        self.launcher_callback(cmd)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.hide()
+        else:
+            super().keyPressEvent(event)
+
+    def mousePressEvent(self, event):
+        # Click outside tiles closes launchpad
+        self.hide()
+
+
+class CirculousDock(QWidget):
+    """Floating macOS-inspired Bottom Dock Window"""
+    def __init__(self, launchpad_toggle_cb, app_launch_cb, parent=None):
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.launchpad_toggle_cb = launchpad_toggle_cb
+        self.app_launch_cb = app_launch_cb
+
+        self.init_ui()
+        self.position_dock()
+
+    def position_dock(self):
+        screen = QApplication.primaryScreen().geometry()
+        dock_width = len(DOCK_APPS) * 58 + 24
+        dock_height = 68
+        x = (screen.width() - dock_width) // 2
+        y = screen.height() - dock_height - 10
+        self.setGeometry(x, y, dock_width, dock_height)
+
+    def init_ui(self):
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Glass Capsule Frame
+        frame = QFrame()
+        frame.setObjectName("DockContainer")
+        frame_layout = QHBoxLayout(frame)
+        frame_layout.setContentsMargins(10, 6, 10, 6)
+        frame_layout.setSpacing(8)
+
+        for app in DOCK_APPS:
+            btn_wrapper = QWidget()
+            wrapper_layout = QVBoxLayout(btn_wrapper)
+            wrapper_layout.setContentsMargins(0, 0, 0, 0)
+            wrapper_layout.setSpacing(2)
+
+            btn = QPushButton(app["icon"])
+            btn.setProperty("class", "DockIconBtn")
+            btn.setFixedSize(48, 48)
+            btn.setToolTip(f"{app['name']} - {app['desc']}")
+            btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+            if app["cmd"] == "LAUNCHPAD_TOGGLE":
+                btn.clicked.connect(self.launchpad_toggle_cb)
+            else:
+                btn.clicked.connect(lambda _, cmd=app["cmd"]: self.app_launch_cb(cmd))
+
+            # Active indicator dot
+            dot = QLabel("•" if app["cmd"] != "LAUNCHPAD_TOGGLE" else "")
+            dot.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
+            dot.setStyleSheet("color: rgba(0, 229, 255, 0.6); margin-top: -4px;")
+            dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            wrapper_layout.addWidget(btn)
+            wrapper_layout.addWidget(dot)
+            frame_layout.addWidget(btn_wrapper)
+
+        main_layout.addWidget(frame)
+
+
+class CirculousTopBar(QWidget):
+    """macOS-inspired Top Status Bar Panel"""
+    def __init__(self, launchpad_toggle_cb, parent=None):
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        self.setObjectName("TopBar")
+        self.launchpad_toggle_cb = launchpad_toggle_cb
         
         self.screen = QApplication.primaryScreen()
         screen_geo = self.screen.geometry()
-        self.setGeometry(0, 0, screen_geo.width(), 36)
+        self.setGeometry(0, 0, screen_geo.width(), 32)
         
-        # Connect screen geometry change signal
         self.screen.geometryChanged.connect(self.on_screen_resized)
-        
-        self.launcher = CirculousLauncher()
         self.init_ui()
 
-        # Update Timer for Clock & Metrics
+        # Timer for Clock & Resource Metrics
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_metrics)
         self.timer.start(1000)
         self.update_metrics()
 
     def on_screen_resized(self, geo):
-        self.setGeometry(0, 0, geo.width(), 36)
-        if geo.width() < 900:
-            self.title_lbl.hide()
-        else:
-            self.title_lbl.show()
+        self.setGeometry(0, 0, geo.width(), 32)
 
     def init_ui(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 2, 4, 2)
-        layout.setSpacing(6)
+        layout.setContentsMargins(6, 2, 8, 2)
+        layout.setSpacing(4)
 
-        # Left Section: Circulous Menu Button
-        self.menu_btn = QPushButton("🌀 Circulous")
-        self.menu_btn.setObjectName("CirculousMenuBtn")
-        self.menu_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.menu_btn.clicked.connect(self.toggle_launcher)
-        layout.addWidget(self.menu_btn)
+        # Circulous Menu Button
+        self.logo_btn = QPushButton("🌀 Circulous")
+        self.logo_btn.setObjectName("LogoBtn")
+        self.logo_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.logo_btn.clicked.connect(self.show_system_menu)
+        layout.addWidget(self.logo_btn)
 
-        # Active Session Title
-        self.title_lbl = QLabel("Circulous 1.0")
-        self.title_lbl.setStyleSheet("color: #00e5ff; font-weight: bold; font-size: 12px;")
-        layout.addWidget(self.title_lbl)
+        # Active App Title
+        self.app_title = QLabel("Circulous Desktop")
+        self.app_title.setObjectName("AppTitleLbl")
+        layout.addWidget(self.app_title)
+
+        # Global Menu Items
+        for menu_name in ["File", "Edit", "View", "Window", "Help"]:
+            btn = QPushButton(menu_name)
+            btn.setProperty("class", "MenuBtn")
+            btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            btn.clicked.connect(lambda _, m=menu_name: self.on_menu_clicked(m))
+            layout.addWidget(btn)
 
         layout.addStretch()
 
-        # Right Section: Metrics & Clock & Power
+        # Status Pills
         self.cpu_lbl = QLabel("CPU: --%")
         self.cpu_lbl.setObjectName("StatusPill")
         layout.addWidget(self.cpu_lbl)
@@ -286,6 +575,10 @@ class CirculousPanel(QWidget):
         self.ram_lbl = QLabel("RAM: --%")
         self.ram_lbl.setObjectName("StatusPill")
         layout.addWidget(self.ram_lbl)
+
+        self.net_lbl = QLabel("📶 Online")
+        self.net_lbl.setObjectName("StatusPill")
+        layout.addWidget(self.net_lbl)
 
         self.clock_lbl = QLabel("--:--")
         self.clock_lbl.setObjectName("ClockPill")
@@ -299,8 +592,8 @@ class CirculousPanel(QWidget):
 
     def update_metrics(self):
         # Update Date & Clock
-        now = QTime.currentTime().toString("hh:mm")
-        self.clock_lbl.setText(f"{now}")
+        now_str = QDate.currentDate().toString("ddd MMM d") + "  " + QTime.currentTime().toString("hh:mm AM/PM")
+        self.clock_lbl.setText(now_str)
 
         # Update CPU & RAM metrics
         if HAS_PSUTIL:
@@ -309,25 +602,67 @@ class CirculousPanel(QWidget):
             self.cpu_lbl.setText(f"CPU: {cpu:.0f}%")
             self.ram_lbl.setText(f"RAM: {ram:.0f}%")
 
-    def toggle_launcher(self):
-        if self.launcher.isVisible():
-            self.launcher.hide()
-        else:
-            btn_pos = self.menu_btn.mapToGlobal(self.menu_btn.rect().bottomLeft())
-            self.launcher.move(btn_pos.x(), btn_pos.y() + 4)
-            self.launcher.show()
-            self.launcher.activateWindow()
+    def show_system_menu(self):
+        menu = QMenu(self)
+        menu.setStyleSheet("background-color: #0e131f; color: #fff; border: 1px solid #00e5ff; border-radius: 6px;")
+
+        about_act = menu.addAction("About Circulous")
+        about_act.triggered.connect(self.show_about_dialog)
+
+        launchpad_act = menu.addAction("Launchpad App Grid")
+        launchpad_act.triggered.connect(self.launchpad_toggle_cb)
+
+        menu.addSeparator()
+        power_act = menu.addAction("Session Options (Shutdown / Reboot)")
+        power_act.triggered.connect(self.show_power_dialog)
+
+        btn_pos = self.logo_btn.mapToGlobal(self.logo_btn.rect().bottomLeft())
+        menu.exec(btn_pos)
+
+    def on_menu_clicked(self, menu_name):
+        print(f"Global menu selected: {menu_name}")
+
+    def show_about_dialog(self):
+        dialog = AboutDialog(self)
+        dialog.exec()
 
     def show_power_dialog(self):
         dialog = PowerDialog(self)
         dialog.exec()
 
 
+class CirculousDesktopShell:
+    """Master Desktop Controller Orchestrating TopBar, Dock, and Launchpad"""
+    def __init__(self):
+        self.launchpad = CirculousLaunchpad(self.launch_app)
+        self.topbar = CirculousTopBar(self.toggle_launchpad)
+        self.dock = CirculousDock(self.toggle_launchpad, self.launch_app)
+
+    def show(self):
+        self.topbar.show()
+        self.dock.show()
+
+    def toggle_launchpad(self):
+        if self.launchpad.isVisible():
+            self.launchpad.hide()
+        else:
+            self.launchpad.show()
+            self.launchpad.activateWindow()
+
+    def launch_app(self, cmd):
+        try:
+            subprocess.Popen(cmd.split())
+        except Exception as e:
+            print(f"Error launching {cmd}: {e}")
+
+
 def main():
     app = QApplication(sys.argv)
     app.setStyleSheet(CIRCULOUS_QSS)
-    panel = CirculousPanel()
-    panel.show()
+
+    shell = CirculousDesktopShell()
+    shell.show()
+
     sys.exit(app.exec())
 
 
