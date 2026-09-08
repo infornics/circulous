@@ -7,8 +7,16 @@ export HOME=/root
 
 echo "==> [Circulous Chroot] Initializing environment..."
 
-# Configure APT sources to include universe, restricted, and multiverse
-echo "==> [Circulous Chroot] Configuring APT repositories (main, universe, restricted, multiverse)..."
+# Prevent daemons and systemd services from attempting to start inside chroot
+echo "==> [Circulous Chroot] Creating /usr/sbin/policy-rc.d (blocking daemon auto-start)..."
+cat << 'POLICY' > /usr/sbin/policy-rc.d
+#!/bin/sh
+exit 101
+POLICY
+chmod +x /usr/sbin/policy-rc.d
+
+# Configure APT sources to include main, universe, restricted, and multiverse
+echo "==> [Circulous Chroot] Configuring APT repositories..."
 cat << 'SOURCES' > /etc/apt/sources.list
 deb http://archive.ubuntu.com/ubuntu resolute main universe restricted multiverse
 deb http://archive.ubuntu.com/ubuntu resolute-updates main universe restricted multiverse
@@ -18,9 +26,14 @@ SOURCES
 # Configure hostname & hosts
 echo "circulous" > /etc/hostname
 
-# Update APT cache with universe repositories
+# Update APT cache
 echo "==> [Circulous Chroot] Updating APT package lists..."
 apt-get update
+
+# Fix any partially installed packages from prior attempts
+echo "==> [Circulous Chroot] Repairing any broken package states..."
+dpkg --configure -a || true
+apt-get install -y -f || true
 
 # Update system locale & timezone
 echo "==> [Circulous Chroot] Setting up locale and timezone..."
@@ -31,9 +44,12 @@ update-locale LANG=en_US.UTF-8
 # Install package manifest
 if [ -f /tmp/packages.list ]; then
     echo "==> [Circulous Chroot] Installing packages from manifest..."
-    # Filter out empty lines and comments
     PACKAGES=$(grep -v '^#' /tmp/packages.list | grep -v '^$' | tr '\n' ' ')
-    apt-get install -y $PACKAGES
+    apt-get install -y --no-install-recommends $PACKAGES || {
+        echo "==> Warning: Initial package install exited with code. Retrying with repair..."
+        dpkg --configure -a || true
+        apt-get install -y -f
+    }
 fi
 
 # Ensure required system groups exist
@@ -64,6 +80,9 @@ if [ -d /etc/skel ]; then
     cp -a /etc/skel/. /home/circulous/
     chown -R circulous:circulous /home/circulous/
 fi
+
+# Remove policy-rc.d before finalizing chroot
+rm -f /usr/sbin/policy-rc.d
 
 # Clean apt cache and temp files to reduce ISO size
 echo "==> [Circulous Chroot] Cleaning up temporary files..."
