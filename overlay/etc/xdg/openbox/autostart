@@ -1,4 +1,4 @@
-# Openbox Autostart Script for Circulous
+# Openbox System-wide Autostart Script for Circulous
 
 # Draw Desktop Icons and Wallpaper via PCManFM-Qt
 pcmanfm-qt --desktop &
