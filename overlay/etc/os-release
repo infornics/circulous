@@ -1,0 +1,13 @@
+NAME="Circulous"
+VERSION="1.0-alpha"
+ID=circulous
+ID_LIKE=ubuntu
+PRETTY_NAME="Circulous 1.0 (Resolving Raccoon)"
+VERSION_ID="26.04"
+VERSION_CODENAME=circulous
+UBUNTU_CODENAME=resolute
+HOME_URL="https://github.com/infornics/circulous"
+SUPPORT_URL="https://github.com/infornics/circulous/issues"
+BUG_REPORT_URL="https://github.com/infornics/circulous/issues"
+PRIVACY_POLICY_URL="https://github.com/infornics/circulous"
+LOGO=circulous-logo

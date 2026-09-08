@@ -1,0 +1,13 @@
+# Circulous Build Directory & ISO Outputs
+/build/
+/out/
+*.iso
+*.squashfs
+
+# Temporary & Swap Files
+*.swp
+*~
+.DS_Store
+
+# Log Files
+*.log

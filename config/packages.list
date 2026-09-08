@@ -1,0 +1,49 @@
+# Circulous Live ISO Package Manifest
+
+# Core Kernel and Bootloader
+linux-generic
+initramfs-tools
+casper
+lupin-casper
+grub-pc-bin
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
+iso-scan
+
+# System Utilities & CLI Tools
+bash
+coreutils
+apt
+sudo
+network-manager
+net-tools
+iproute2
+pciutils
+usbutils
+wget
+curl
+git
+vim
+nano
+htop
+unzip
+tar
+
+# Graphics & Desktop Environment (Minimal LXQt / LightDM stack)
+xorg
+x11-xserver-utils
+desktop-base
+lxqt-core
+lightdm
+lightdm-gtk-greeter
+featherpad
+qterminal
+pcmanfm-qt
+
+# Installer & Hardware Drivers
+calamares
+squashfs-tools
+gparted
+dosfstools
+e2fsprogs
