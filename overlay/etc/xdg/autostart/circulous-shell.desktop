@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Circulous Shell
+Comment=Native Desktop Shell for Circulous Distribution
+Exec=/usr/bin/circulous-shell
+OnlyShowIn=Openbox;LXQt;
+X-GNOME-Autostart-enabled=true

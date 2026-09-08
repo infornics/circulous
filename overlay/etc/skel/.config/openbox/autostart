@@ -1,0 +1,4 @@
+# Openbox Autostart Script for Circulous
+
+# Launch Circulous Native Desktop Shell
+/usr/bin/circulous-shell &

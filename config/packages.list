@@ -9,11 +9,14 @@ grub-efi-amd64-bin
 grub-efi-amd64-signed
 shim-signed
 
-# System Utilities & CLI Tools
+# System Utilities & Python 3 Runtime for Circulous Shell
 bash
 coreutils
 apt
 sudo
+python3
+python3-pyqt6
+python3-psutil
 network-manager
 net-tools
 iproute2
@@ -28,14 +31,11 @@ htop
 unzip
 tar
 
-# Graphics & Desktop Environment (LXQt + Openbox + LightDM)
+# Graphics & Circulous Desktop Engine (Openbox + LightDM)
 xorg
 xserver-xorg
 openbox
 obconf-qt
-lxqt-core
-lxqt-panel
-lxqt-session
 lightdm
 lightdm-gtk-greeter
 featherpad
