@@ -31,6 +31,13 @@ htop
 unzip
 tar
 
+# Fonts & Icon Themes (Fixes missing emoji tofu boxes & provides modern icon set)
+fonts-noto-color-emoji
+fonts-ubuntu
+papirus-icon-theme
+adwaita-icon-theme-full
+hicolor-icon-theme
+
 # Graphics & Circulous Desktop Engine (Openbox + LightDM)
 xorg
 xserver-xorg

@@ -5,28 +5,19 @@ Circulous Shell (circulous-shell)
 ==============================================================================
 Native macOS-Inspired Desktop Shell for Circulous Distribution.
 Built with Python 3 and PyQt6.
-
-Features:
-- CirculousTopBar: Sleek macOS status bar with Circulous branding, active app title,
-  global menus, CPU/RAM metrics pills, clock/date, and power options.
-- CirculousDock: Floating glass dock with rounded capsule styling, app launchers,
-  magnification hover effects, and active process indicators.
-- CirculousLaunchpad: Full-screen overlay app launcher grid with live filter search.
-- CirculousAboutDialog: Apple-style "About Circulous" system info panel.
-- CirculousPowerDialog: Clean session control (Reboot / Shut Down / Logout).
 ==============================================================================
 """
 
 import sys
 import os
 import subprocess
-from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize, QEvent
+from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
     QLabel, QLineEdit, QScrollArea, QDialog, QGridLayout, QFrame,
-    QMenu, QGraphicsDropShadowEffect
+    QMenu
 )
-from PyQt6.QtGui import QFont, QCursor, QColor, QIcon, QAction
+from PyQt6.QtGui import QFont, QCursor, QIcon
 
 # Try importing psutil for CPU/RAM system metrics
 try:
@@ -36,12 +27,13 @@ except ImportError:
     HAS_PSUTIL = False
 
 
-# Application Launcher Registry
+# Application Launcher Registry with Theme Icons & Emoji Fallbacks
 DOCK_APPS = [
     {
         "id": "launchpad",
         "name": "Launchpad",
         "icon": "🚀",
+        "theme_icon": "start-here",
         "cmd": "LAUNCHPAD_TOGGLE",
         "desc": "Show All Applications",
         "category": "System"
@@ -50,6 +42,7 @@ DOCK_APPS = [
         "id": "files",
         "name": "Files",
         "icon": "📁",
+        "theme_icon": "system-file-manager",
         "cmd": "pcmanfm-qt",
         "desc": "File Manager",
         "category": "Utilities"
@@ -58,6 +51,7 @@ DOCK_APPS = [
         "id": "terminal",
         "name": "Terminal",
         "icon": "🖥️",
+        "theme_icon": "utilities-terminal",
         "cmd": "qterminal",
         "desc": "Terminal Emulator",
         "category": "System"
@@ -66,6 +60,7 @@ DOCK_APPS = [
         "id": "editor",
         "name": "Text Editor",
         "icon": "📝",
+        "theme_icon": "accessories-text-editor",
         "cmd": "featherpad",
         "desc": "FeatherPad Code & Text Editor",
         "category": "Text"
@@ -74,6 +69,7 @@ DOCK_APPS = [
         "id": "installer",
         "name": "Install Circulous",
         "icon": "💿",
+        "theme_icon": "system-software-install",
         "cmd": "sudo calamares",
         "desc": "Install Circulous to Hard Drive",
         "category": "System"
@@ -82,6 +78,7 @@ DOCK_APPS = [
         "id": "settings",
         "name": "Openbox Settings",
         "icon": "⚙️",
+        "theme_icon": "preferences-system",
         "cmd": "obconf-qt",
         "desc": "Window Manager Configuration",
         "category": "Settings"
@@ -90,6 +87,7 @@ DOCK_APPS = [
         "id": "disks",
         "name": "Disks",
         "icon": "💾",
+        "theme_icon": "gparted",
         "cmd": "gparted",
         "desc": "GParted Partition Manager",
         "category": "Utilities"
@@ -98,6 +96,7 @@ DOCK_APPS = [
         "id": "monitor",
         "name": "Activity Monitor",
         "icon": "📊",
+        "theme_icon": "utilities-system-monitor",
         "cmd": "qterminal -e htop",
         "desc": "System Resource Monitor",
         "category": "System"
@@ -109,6 +108,7 @@ LAUNCHPAD_EXTRA_APPS = [
         "id": "web",
         "name": "Web Browser",
         "icon": "🌐",
+        "theme_icon": "web-browser",
         "cmd": "x-www-browser",
         "desc": "Explore the Web",
         "category": "Internet"
@@ -117,6 +117,7 @@ LAUNCHPAD_EXTRA_APPS = [
         "id": "calc",
         "name": "Calculator",
         "icon": "🧮",
+        "theme_icon": "accessories-calculator",
         "cmd": "qterminal -e python3",
         "desc": "Python Interactive Console",
         "category": "Utilities"
@@ -124,10 +125,10 @@ LAUNCHPAD_EXTRA_APPS = [
 ]
 
 
-# QSS Stylesheet for macOS-inspired Dark Glassmorphism Theme
+# QSS Stylesheet with Noto Color Emoji & Ubuntu Font stack
 CIRCULOUS_QSS = """
 QWidget {
-    font-family: "Ubuntu", "DejaVu Sans", "Segoe UI", sans-serif;
+    font-family: "Ubuntu", "Noto Color Emoji", "Segoe UI Emoji", "DejaVu Sans", sans-serif;
     color: #f0f6fc;
 }
 
@@ -141,7 +142,7 @@ QWidget {
     background-color: transparent;
     color: #00e5ff;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     border: none;
     padding: 2px 10px;
     border-radius: 4px;
@@ -217,7 +218,7 @@ QWidget {
     background-color: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .DockIconBtn:hover {
@@ -243,7 +244,7 @@ QWidget {
     background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 16px;
+    padding: 12px;
 }
 
 #AppTile:hover {
@@ -273,8 +274,13 @@ class AboutDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(10)
 
-        logo = QLabel("🌀")
-        logo.setFont(QFont("Ubuntu", 42))
+        logo = QLabel()
+        logo_icon = QIcon.fromTheme("start-here", QIcon.fromTheme("computer"))
+        if not logo_icon.isNull():
+            logo.setPixmap(logo_icon.pixmap(48, 48))
+        else:
+            logo.setText("🌀")
+            logo.setFont(QFont("Ubuntu", 42))
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(logo)
 
@@ -317,19 +323,21 @@ class PowerDialog(QDialog):
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(8)
 
-        title = QLabel("🌀 Session Options")
+        title = QLabel("Session Options")
         title.setFont(QFont("Ubuntu", 14, QFont.Weight.Bold))
         title.setStyleSheet("color: #ff355e;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
-        reboot_btn = QPushButton("🔄 Restart System")
+        reboot_btn = QPushButton("Restart System")
+        reboot_btn.setIcon(QIcon.fromTheme("system-reboot"))
         reboot_btn.setStyleSheet("background: rgba(0,229,255,0.2); border: 1px solid #00e5ff; color: #fff; padding: 8px; border-radius: 8px; font-weight: bold;")
         reboot_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         reboot_btn.clicked.connect(lambda: subprocess.Popen(["systemctl", "reboot"]))
         layout.addWidget(reboot_btn)
 
-        poweroff_btn = QPushButton("⏻ Shut Down")
+        poweroff_btn = QPushButton("Shut Down")
+        poweroff_btn.setIcon(QIcon.fromTheme("system-shutdown"))
         poweroff_btn.setStyleSheet("background: rgba(255,53,94,0.3); border: 1px solid #ff355e; color: #fff; padding: 8px; border-radius: 8px; font-weight: bold;")
         poweroff_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         poweroff_btn.clicked.connect(lambda: subprocess.Popen(["systemctl", "poweroff"]))
@@ -364,7 +372,7 @@ class CirculousLaunchpad(QWidget):
 
         self.search_box = QLineEdit()
         self.search_box.setObjectName("LaunchpadSearch")
-        self.search_box.setPlaceholderText("🔍 Search Applications in Circulous...")
+        self.search_box.setPlaceholderText("Search Applications in Circulous...")
         self.search_box.setFixedWidth(400)
         self.search_box.textChanged.connect(self.filter_apps)
         header_layout.addWidget(self.search_box)
@@ -402,8 +410,13 @@ class CirculousLaunchpad(QWidget):
             tile_layout.setContentsMargins(10, 10, 10, 10)
             tile_layout.setSpacing(4)
 
-            icon_lbl = QLabel(app["icon"])
-            icon_lbl.setFont(QFont("Ubuntu", 28))
+            icon_lbl = QLabel()
+            t_icon = QIcon.fromTheme(app.get("theme_icon", ""), QIcon.fromTheme("application-x-executable"))
+            if not t_icon.isNull():
+                icon_lbl.setPixmap(t_icon.pixmap(36, 36))
+            else:
+                icon_lbl.setText(app["icon"])
+                icon_lbl.setFont(QFont("Ubuntu", 28))
             icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             name_lbl = QLabel(app["name"])
@@ -493,11 +506,19 @@ class CirculousDock(QWidget):
             wrapper_layout.setContentsMargins(0, 0, 0, 0)
             wrapper_layout.setSpacing(2)
 
-            btn = QPushButton(app["icon"])
+            btn = QPushButton()
             btn.setProperty("class", "DockIconBtn")
             btn.setFixedSize(48, 48)
             btn.setToolTip(f"{app['name']} - {app['desc']}")
             btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+            # Set freedesktop theme icon first, or fallback to emoji
+            t_icon = QIcon.fromTheme(app.get("theme_icon", ""), QIcon.fromTheme("application-x-executable"))
+            if not t_icon.isNull():
+                btn.setIcon(t_icon)
+                btn.setIconSize(QSize(32, 32))
+            else:
+                btn.setText(app["icon"])
 
             if app["cmd"] == "LAUNCHPAD_TOGGLE":
                 btn.clicked.connect(self.launchpad_toggle_cb)
@@ -507,7 +528,7 @@ class CirculousDock(QWidget):
             # Active indicator dot
             dot = QLabel("•" if app["cmd"] != "LAUNCHPAD_TOGGLE" else "")
             dot.setFont(QFont("Ubuntu", 12, QFont.Weight.Bold))
-            dot.setStyleSheet("color: rgba(0, 229, 255, 0.6); margin-top: -4px;")
+            dot.setStyleSheet("color: rgba(0, 229, 255, 0.7); margin-top: -4px;")
             dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             wrapper_layout.addWidget(btn)
@@ -546,7 +567,11 @@ class CirculousTopBar(QWidget):
         layout.setSpacing(4)
 
         # Circulous Menu Button
-        self.logo_btn = QPushButton("🌀 Circulous")
+        self.logo_btn = QPushButton(" Circulous")
+        logo_icon = QIcon.fromTheme("start-here", QIcon.fromTheme("computer"))
+        if not logo_icon.isNull():
+            self.logo_btn.setIcon(logo_icon)
+            self.logo_btn.setIconSize(QSize(18, 18))
         self.logo_btn.setObjectName("LogoBtn")
         self.logo_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.logo_btn.clicked.connect(self.show_system_menu)
@@ -576,7 +601,8 @@ class CirculousTopBar(QWidget):
         self.ram_lbl.setObjectName("StatusPill")
         layout.addWidget(self.ram_lbl)
 
-        self.net_lbl = QLabel("📶 Online")
+        self.net_lbl = QLabel("Online")
+        self.net_lbl.setIcon(QIcon.fromTheme("network-transmit-receive"))
         self.net_lbl.setObjectName("StatusPill")
         layout.addWidget(self.net_lbl)
 
@@ -585,6 +611,7 @@ class CirculousTopBar(QWidget):
         layout.addWidget(self.clock_lbl)
 
         self.power_btn = QPushButton("⏻")
+        self.power_btn.setIcon(QIcon.fromTheme("system-shutdown"))
         self.power_btn.setObjectName("PowerBtn")
         self.power_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.power_btn.clicked.connect(self.show_power_dialog)
