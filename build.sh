@@ -179,7 +179,7 @@ GRUB_CFG
 
 usage() {
     echo "Circulous Distribution ISO Builder"
-    echo "Usage: sudo $0 [OPTION]"
+    echo "Usage: sudo $0 [OPTION...]"
     echo ""
     echo "Options:"
     echo "  --clean       Clean previous build artifacts"
@@ -192,49 +192,54 @@ usage() {
 }
 
 main() {
-    local action="${1:---all}"
+    if [ "$#" -eq 0 ]; then
+        set -- "--all"
+    fi
 
-    case "$action" in
-        --clean)
-            check_root
-            clean_build
-            ;;
-        --bootstrap)
-            check_root
-            check_dependencies
-            mkdir -p "${BUILD_DIR}" "${ROOTFS_DIR}"
-            stage_bootstrap
-            ;;
-        --chroot)
-            check_root
-            stage_chroot
-            ;;
-        --squashfs)
-            check_root
-            check_dependencies
-            stage_squashfs
-            ;;
-        --iso)
-            check_root
-            check_dependencies
-            stage_iso
-            ;;
-        --all)
-            check_root
-            check_dependencies
-            clean_build
-            stage_bootstrap
-            stage_chroot
-            stage_squashfs
-            stage_iso
-            ;;
-        --help)
-            usage
-            ;;
-        *)
-            error "Unknown option: $action. Use --help for available options."
-            ;;
-    esac
+    for arg in "$@"; do
+        case "$arg" in
+            --clean)
+                check_root
+                clean_build
+                ;;
+            --bootstrap)
+                check_root
+                check_dependencies
+                mkdir -p "${BUILD_DIR}" "${ROOTFS_DIR}"
+                stage_bootstrap
+                ;;
+            --chroot)
+                check_root
+                stage_chroot
+                ;;
+            --squashfs)
+                check_root
+                check_dependencies
+                stage_squashfs
+                ;;
+            --iso)
+                check_root
+                check_dependencies
+                stage_iso
+                ;;
+            --all)
+                check_root
+                check_dependencies
+                clean_build
+                stage_bootstrap
+                stage_chroot
+                stage_squashfs
+                stage_iso
+                ;;
+            --help)
+                usage
+                exit 0
+                ;;
+            *)
+                error "Unknown option: $arg. Use --help for available options."
+                ;;
+        esac
+    done
 }
 
 main "$@"
