@@ -1,0 +1,3 @@
+deb http://archive.ubuntu.com/ubuntu resolute main universe restricted multiverse
+deb http://archive.ubuntu.com/ubuntu resolute-updates main universe restricted multiverse
+deb http://archive.ubuntu.com/ubuntu resolute-security main universe restricted multiverse

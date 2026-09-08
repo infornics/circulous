@@ -1,15 +1,13 @@
 # Circulous Live ISO Package Manifest
 
-# Core Kernel and Bootloader
+# Core Kernel, Bootloader & Casper Live Boot
 linux-generic
 initramfs-tools
 casper
-lupin-casper
 grub-pc-bin
 grub-efi-amd64-bin
 grub-efi-amd64-signed
 shim-signed
-iso-scan
 
 # System Utilities & CLI Tools
 bash
@@ -30,10 +28,9 @@ htop
 unzip
 tar
 
-# Graphics & Desktop Environment (Minimal LXQt / LightDM stack)
+# Graphics & Desktop Environment (LXQt / LightDM stack)
 xorg
-x11-xserver-utils
-desktop-base
+xserver-xorg
 lxqt-core
 lightdm
 lightdm-gtk-greeter
@@ -41,7 +38,7 @@ featherpad
 qterminal
 pcmanfm-qt
 
-# Installer & Hardware Drivers
+# Installer & Disk Management
 calamares
 squashfs-tools
 gparted
