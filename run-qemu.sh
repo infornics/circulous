@@ -83,7 +83,7 @@ qemu-system-x86_64 \
     -cdrom "${ISO_PATH}" \
     -boot d \
     -vga virtio \
-    -display default \
+    -display gtk,zoom-to-fit=on \
     -usb \
     -device usb-tablet \
     -name "Circulous Live Session"
