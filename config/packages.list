@@ -28,10 +28,14 @@ htop
 unzip
 tar
 
-# Graphics & Desktop Environment (LXQt / LightDM stack)
+# Graphics & Desktop Environment (LXQt + Openbox + LightDM)
 xorg
 xserver-xorg
+openbox
+obconf-qt
 lxqt-core
+lxqt-panel
+lxqt-session
 lightdm
 lightdm-gtk-greeter
 featherpad
