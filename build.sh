@@ -38,7 +38,7 @@ check_root() {
 
 check_dependencies() {
     info "Checking required build utilities..."
-    local deps=("debootstrap" "mksquashfs" "xorriso")
+    local deps=("debootstrap" "mksquashfs" "xorriso" "grub-mkrescue")
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &>/dev/null; then
             error "Missing dependency: $dep. Please install it using 'sudo apt install $dep'."
@@ -136,7 +136,7 @@ stage_squashfs() {
 }
 
 stage_iso() {
-    info "Phase 4: Packaging bootable Circulous ISO..."
+    info "Phase 4: Packaging bootable Circulous ISO using grub-mkrescue..."
     
     mkdir -p "${ISO_DIR}/boot/grub" "${OUTPUT_DIR}"
 
@@ -161,17 +161,11 @@ menuentry "Boot Circulous 1.0 (Safe Graphics)" {
 }
 GRUB_CFG
 
-    # Generate ISO using xorriso
+    # Generate bootable hybrid BIOS/UEFI ISO using grub-mkrescue
     local target_iso="${OUTPUT_DIR}/${ISO_NAME}"
-    info "Generating ISO file at ${target_iso}..."
+    info "Generating bootable hybrid ISO image at ${target_iso}..."
 
-    xorriso -as mkisofs \
-        -r -V "${VOLUME_LABEL}" \
-        -J -l \
-        -b boot/grub/grub.cfg \
-        -no-emul-boot -boot-load-size 4 -boot-info-table \
-        -o "${target_iso}" \
-        "${ISO_DIR}"
+    grub-mkrescue -o "${target_iso}" "${ISO_DIR}" -- -volid "${VOLUME_LABEL}"
 
     success "Phase 4: Circulous ISO built successfully!"
     info "Output location: ${target_iso}"
